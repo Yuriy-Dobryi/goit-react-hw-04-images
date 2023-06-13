@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Triangle } from 'react-loader-spinner'
@@ -8,100 +7,56 @@ import { Searchbar } from "./Searchbar/Searchbar";
 import { ImageGallery } from "./ImageGallery/ImageGallery";
 import { LoadMoreBtn } from "./LoadMoreBtn/LoadMoreBtn";
 import '../index.css';
-import loaderStyles from './helpers/loaderStyles';
+import {getImages, loaderStyles} from './helpers';
 
 export function App() {
-  const [imageName, setImageName] = useState('');
+  const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [images, setImages] = useState([]);
   const [status, setStatus] = useState('idle');
 
-  const getImages = async () => {
-    const URL = `https://pixabay.com/api/`;
-    const config = {
-      params: {
-        key: `35543828-6c73cc5fdea5a14873063547d`,
-        q: imageName,
-        image_type: 'photo',
-        orientation: 'horizontal',
-        safesearch: true,
-        page,
-        per_page: 30,
-      },
-    };
-
-    const response = await axios.get(URL, config);
-    return response.data;
-  };
-
   useEffect(() => {
-    if (imageName === '') {
+    if (query === '') {
       return;
     }
-    const fetchData = async () => {
-      setStatus('pending');
-      try {
-        const { hits, totalHits } = await getImages();
-        const isLastPage = hits.length < 30;
-
-        if (imageName !== '' && totalHits === 0) {
-          toast.error('Sorry, there are no images matching your search query.');
-          throw new Error();
-        }
-        if (isLastPage) {
-          toast.info(`There is the last page with "${imageName}".`);
-        }
-
-        toast.success(`Hooray! We found ${totalHits} images.`);
-        setImages([...hits]);
-        setStatus(isLastPage ? 'rejected' : 'resolved');
-
-      } catch {
-        setStatus('rejected');
-      }
-    };
     
-    fetchData();
-  }, [imageName]);
-
-
-
-  useEffect(() => {
-    if (page === 1) {
-      return;
-    }
-
-    const fetchData = async () => {
-      setStatus('pending');
-      try {
-        const { hits } = await getImages();
+    try {
+      const fetchData = async () => {
+        setStatus('pending');
+        const { hits, totalHits } = await getImages(query, page);
+        const isStartPage = page === 1;
+        const isResponseEmpty = totalHits === 0;
         const isLastPage = hits.length < 30;
-
+        
+        if (isStartPage) {
+          if (isResponseEmpty) {
+            toast.error('Sorry, there are no images matching your search query.');
+            throw new Error();
+          }
+          toast.success(`Hooray! We found ${totalHits} images.`);
+        }
         if (isLastPage) {
-          toast.info(`There is the last page.`);
+          toast.info(`There is the last page with "${query}".`);
         }
 
-        setImages(prevImages => [...prevImages, ...hits]);
+        setImages(isStartPage ? [...hits] : (prev) => [...prev, ...hits]);
         setStatus(isLastPage ? 'rejected' : 'resolved');
-      } catch {
-        setStatus('rejected');
-      }
-    };
+      };
 
-    fetchData();
-  }, [page]);
-  
-  
-  
+      fetchData();
+    } catch {
+      setStatus('rejected');
+    }
+  }, [query, page]);
 
-  function changeImageName(newName) {
-    if (imageName === newName) {
+
+  function changeQuery(newQuery) {
+    if (query === newQuery) {
       toast.info("The same query. Please, enter different.")
       return;
     }
-    setImageName(newName);
+    setQuery(newQuery);
     setPage(1);
-    setImages([]);
   }
 
   function incrementPage() {
@@ -110,7 +65,7 @@ export function App() {
 
   return (
     <div className="App">
-      <Searchbar onSubmit={changeImageName} />
+      <Searchbar onSubmit={changeQuery} />
       <ImageGallery images={images} />
         
       {status === 'resolved' &&
