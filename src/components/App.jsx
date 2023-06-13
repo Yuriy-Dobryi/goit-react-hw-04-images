@@ -60,7 +60,7 @@ export function App() {
   }
 
   function incrementPage() {
-    setPage(page + 1);
+    setPage(prev => prev + 1);
   }
 
   return (
