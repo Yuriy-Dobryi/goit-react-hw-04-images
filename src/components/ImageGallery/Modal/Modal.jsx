@@ -1,24 +1,25 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import styles from './Modal.module.css';
 
 export function Modal({ largeImg, tags, closeModal }) {
+  const closeModalRef = useRef(closeModal);
 
   useEffect(() => {
     const onEscapeClick = ({ key }) => {
       if (key === "Escape") {
-        closeModal();
+        closeModalRef.current();
       }
-    }
+    };
     window.addEventListener('keydown', onEscapeClick);
 
     return () => window.removeEventListener('keydown', onEscapeClick);
-  }, [closeModal]);
+  }, []);
 
   function onOverlayClick(e) {
     e.preventDefault();
     if (e.target === e.currentTarget) {
-      closeModal();
+      closeModalRef.current();
     }
   }
 
@@ -31,6 +32,6 @@ export function Modal({ largeImg, tags, closeModal }) {
   );
 }
 
-  Modal.propTypes = {
-    closeModal: PropTypes.func.isRequired,
-  };
+Modal.propTypes = {
+  closeModal: PropTypes.func.isRequired,
+};
