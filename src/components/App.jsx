@@ -7,7 +7,7 @@ import { Searchbar } from "./Searchbar/Searchbar";
 import { ImageGallery } from "./ImageGallery/ImageGallery";
 import { LoadMoreBtn } from "./LoadMoreBtn/LoadMoreBtn";
 import '../index.css';
-import {getImages, loaderStyles} from './helpers';
+import {getImages, loaderStyles} from '../helpers';
 
 export function App() {
   const [query, setQuery] = useState('');
